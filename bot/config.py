@@ -24,9 +24,9 @@ LIKE_LIMIT_FREE = 5
 LIKE_LIMIT_PREMIUM = 20
 
 # Narxlar (so'mda)
-PRICE_CARD_SIMPLE = 10000      # Oddiy tanishuv
-PRICE_CARD_SERIOUS = 10000     # Jiddiy tanishuv
-PRICE_CARD_FAMILY = 10000      # Oila qurish
+PRICE_CARD_SIMPLE = 5000      # Oddiy tanishuv
+PRICE_CARD_SERIOUS = 15000     # Jiddiy tanishuv
+PRICE_CARD_FAMILY = 40000      # Oila qurish
 PRICE_LOCATION = 25000         # Lokatsiya kartochkasi
 PRICE_HIDDEN = 10000           # Yashirin rejim (oylik)
 PRICE_PREMIUM = 50000          # Premium (oylik)
