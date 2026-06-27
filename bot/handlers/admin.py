@@ -138,7 +138,7 @@ async def handle_admin_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Shahar: {user['city']}\n"
             f"Tarif: {user['tariff']}\n"
             f"Balans: {user['balance']:,} so'm\n"
-            f"Bloklangan: {'Ha' if user['is_blocked'] else 'Yo\\'q'}",
+            f"Bloklangan: {'Ha' if user['is_blocked'] else 'Yo\\'q'}"
             reply_markup=user_actions(user['telegram_id'], user['is_blocked'])
         )
         context.user_data['admin_action'] = None
