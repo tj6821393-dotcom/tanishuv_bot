@@ -10,6 +10,8 @@ async def show_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     hidden_text = "👁 Ko'rinishni yoqish" if user['is_hidden'] else "🙈 Yashirin rejim"
     hidden_data = "settings_show" if user['is_hidden'] else "settings_hide"
+    holat = "Yashirin" if user['is_hidden'] else "Ko'rinadi"
+    lokatsiya = "Ulangan" if user['latitude'] else "Ulanmagan"
     kb = InlineKeyboardMarkup([
         [InlineKeyboardButton(hidden_text, callback_data=hidden_data)],
         [InlineKeyboardButton("📍 Lokatsiyani yangilash", callback_data="settings_location")],
@@ -17,8 +19,8 @@ async def show_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ])
     await update.message.reply_text(
         f"⚙️ Sozlamalar\n\n"
-        f"👁 Holat: {'Yashirin' if user['is_hidden'] else 'Ko\\'rinadi'}\n"
-        f"📍 Lokatsiya: {'Ulangan' if user['latitude'] else 'Ulanmagan'}",
+        f"👁 Holat: {holat}\n"
+        f"📍 Lokatsiya: {lokatsiya}",
         reply_markup=kb
     )
 
