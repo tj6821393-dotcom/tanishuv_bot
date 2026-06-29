@@ -11,6 +11,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Avval ro'yxatdan o'ting! /start")
         return
     photos = user['photos'].split(',') if user['photos'] else []
+    verified = "Ha" if user['is_verified'] else "Yo'q"
     text = (
         f"👤 Sizning profilingiz\n\n"
         f"🆔 #{user['unique_id']}\n"
@@ -22,7 +23,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📝 Bio: {user['bio'] or 'Kiritilmagan'}\n\n"
         f"⭐ Tarif: {user['tariff'].upper()}\n"
         f"💰 Balans: {user['balance']:,} so'm\n"
-        f"✅ Tasdiqlangan: {'Ha' if user['is_verified'] else 'Yo\\'q'}"
+        f"✅ Tasdiqlangan: {verified}"
     )
     if photos:
         await update.message.reply_photo(
