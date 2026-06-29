@@ -20,21 +20,16 @@ from bot.handlers.settings import show_settings, handle_settings_callback, handl
 
 logging.basicConfig(level=logging.INFO)
 
+
 async def main():
     pool = await create_pool()
     await create_tables(pool)
 
     app = Application.builder().token(BOT_TOKEN).build()
 
-    # ═══════════════════════════
-    # CONVERSATION HANDLERLAR
-    # ═══════════════════════════
     app.add_handler(get_start_handler())
     app.add_handler(get_payment_handler())
 
-    # ═══════════════════════════
-    # MENYU TUGMALARI
-    # ═══════════════════════════
     app.add_handler(MessageHandler(filters.Regex("🔍 Qidiruv"), show_search))
     app.add_handler(MessageHandler(filters.Regex("🛍️ Do'kon"), show_shop))
     app.add_handler(MessageHandler(filters.Regex("👤 Profil"), show_profile))
@@ -43,47 +38,28 @@ async def main():
     app.add_handler(MessageHandler(filters.Regex("⚙️ Sozlamalar"), show_settings))
     app.add_handler(MessageHandler(filters.Regex("📊 Statistika"), show_stats))
 
-    # ═══════════════════════════
-    # LOKATSIYA
-    # ═══════════════════════════
     app.add_handler(MessageHandler(filters.LOCATION, handle_new_location))
 
-    # ═══════════════════════════
-    # ADMIN
-    # ═══════════════════════════
     app.add_handler(CommandHandler("admin", admin_panel))
 
-    # ═══════════════════════════
-    # CALLBACK QUERYLAR
-    # ═══════════════════════════
-
-    # Qidiruv
     app.add_handler(CallbackQueryHandler(handle_like, pattern="^like_"))
     app.add_handler(CallbackQueryHandler(handle_next, pattern="^next_user"))
     app.add_handler(CallbackQueryHandler(handle_block, pattern="^block_"))
 
-    # Do'kon
     app.add_handler(CallbackQueryHandler(buy_card, pattern="^buy_card_"))
     app.add_handler(CallbackQueryHandler(send_card_to_user, pattern="^send_card_"))
     app.add_handler(CallbackQueryHandler(use_card, pattern="^use_card_"))
     app.add_handler(CallbackQueryHandler(handle_card_accept, pattern="^card_accept_"))
     app.add_handler(CallbackQueryHandler(handle_card_deny, pattern="^card_deny_"))
 
-    # Profil
     app.add_handler(CallbackQueryHandler(handle_profile_callback, pattern="^profile_|^edit_"))
 
-    # Sozlamalar
     app.add_handler(CallbackQueryHandler(handle_settings_callback, pattern="^settings_"))
 
-    # Lokatsiya ruxsati
     app.add_handler(CallbackQueryHandler(handle_location_perm, pattern="^loc_perm_"))
 
-    # Admin
     app.add_handler(CallbackQueryHandler(handle_admin_callback, pattern="^admin_|^broadcast_|^resolve_"))
 
-    # ═══════════════════════════
-    # MATN HANDLERLAR (eng oxirida)
-    # ═══════════════════════════
     app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         handle_all_text
@@ -92,12 +68,14 @@ async def main():
     print("✅ Bot ishga tushdi!")
     await app.run_polling()
 
+
 async def show_stats(update, context):
     from bot.database.queries import get_user
     from bot.database.connection import get_pool
     tg_id = update.effective_user.id
     user = await get_user(tg_id)
     if not user:
+        await update.message.reply_text("Avval ro'yxatdan o'ting! /start")
         return
     pool = await get_pool()
     async with pool.acquire() as conn:
@@ -115,6 +93,7 @@ async def show_stats(update, context):
         f"💰 Balans: {user['balance']:,} so'm\n"
         f"⭐ Tarif: {user['tariff'].upper()}"
     )
+
 
 async def handle_location_perm(update, context):
     from bot.database.queries import set_location_perm, get_user
@@ -151,6 +130,7 @@ async def handle_location_perm(update, context):
             text="⏳ 1 soatlik lokatsiya ruxsati olindi!"
         )
 
+
 async def handle_all_text(update, context):
     from bot.handlers.admin import is_admin, handle_admin_text
     from bot.handlers.messages import handle_message_input
@@ -169,6 +149,7 @@ async def handle_all_text(update, context):
     if context.user_data.get('messages_action'):
         await handle_message_input(update, context)
         return
+
 
 if __name__ == "__main__":
     asyncio.run(main())
