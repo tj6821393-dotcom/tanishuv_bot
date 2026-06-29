@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
@@ -21,52 +20,11 @@ from bot.handlers.settings import show_settings, handle_settings_callback, handl
 logging.basicConfig(level=logging.INFO)
 
 
-async def main():
+async def post_init(application):
     pool = await create_pool()
     await create_tables(pool)
-
-    app = Application.builder().token(BOT_TOKEN).build()
-
-    app.add_handler(get_start_handler())
-    app.add_handler(get_payment_handler())
-
-    app.add_handler(MessageHandler(filters.Regex("🔍 Qidiruv"), show_search))
-    app.add_handler(MessageHandler(filters.Regex("🛍️ Do'kon"), show_shop))
-    app.add_handler(MessageHandler(filters.Regex("👤 Profil"), show_profile))
-    app.add_handler(MessageHandler(filters.Regex("🔔 Bildirishnomalar"), show_notifications))
-    app.add_handler(MessageHandler(filters.Regex("💌 Xabarlar"), show_messages))
-    app.add_handler(MessageHandler(filters.Regex("⚙️ Sozlamalar"), show_settings))
-    app.add_handler(MessageHandler(filters.Regex("📊 Statistika"), show_stats))
-
-    app.add_handler(MessageHandler(filters.LOCATION, handle_new_location))
-
-    app.add_handler(CommandHandler("admin", admin_panel))
-
-    app.add_handler(CallbackQueryHandler(handle_like, pattern="^like_"))
-    app.add_handler(CallbackQueryHandler(handle_next, pattern="^next_user"))
-    app.add_handler(CallbackQueryHandler(handle_block, pattern="^block_"))
-
-    app.add_handler(CallbackQueryHandler(buy_card, pattern="^buy_card_"))
-    app.add_handler(CallbackQueryHandler(send_card_to_user, pattern="^send_card_"))
-    app.add_handler(CallbackQueryHandler(use_card, pattern="^use_card_"))
-    app.add_handler(CallbackQueryHandler(handle_card_accept, pattern="^card_accept_"))
-    app.add_handler(CallbackQueryHandler(handle_card_deny, pattern="^card_deny_"))
-
-    app.add_handler(CallbackQueryHandler(handle_profile_callback, pattern="^profile_|^edit_"))
-
-    app.add_handler(CallbackQueryHandler(handle_settings_callback, pattern="^settings_"))
-
-    app.add_handler(CallbackQueryHandler(handle_location_perm, pattern="^loc_perm_"))
-
-    app.add_handler(CallbackQueryHandler(handle_admin_callback, pattern="^admin_|^broadcast_|^resolve_"))
-
-    app.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND,
-        handle_all_text
-    ))
-
+    application.bot_data['pool'] = pool
     print("✅ Bot ishga tushdi!")
-    await app.run_polling()
 
 
 async def show_stats(update, context):
@@ -151,5 +109,49 @@ async def handle_all_text(update, context):
         return
 
 
+def main():
+    app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+
+    app.add_handler(get_start_handler())
+    app.add_handler(get_payment_handler())
+
+    app.add_handler(MessageHandler(filters.Regex("🔍 Qidiruv"), show_search))
+    app.add_handler(MessageHandler(filters.Regex("🛍️ Do'kon"), show_shop))
+    app.add_handler(MessageHandler(filters.Regex("👤 Profil"), show_profile))
+    app.add_handler(MessageHandler(filters.Regex("🔔 Bildirishnomalar"), show_notifications))
+    app.add_handler(MessageHandler(filters.Regex("💌 Xabarlar"), show_messages))
+    app.add_handler(MessageHandler(filters.Regex("⚙️ Sozlamalar"), show_settings))
+    app.add_handler(MessageHandler(filters.Regex("📊 Statistika"), show_stats))
+
+    app.add_handler(MessageHandler(filters.LOCATION, handle_new_location))
+
+    app.add_handler(CommandHandler("admin", admin_panel))
+
+    app.add_handler(CallbackQueryHandler(handle_like, pattern="^like_"))
+    app.add_handler(CallbackQueryHandler(handle_next, pattern="^next_user"))
+    app.add_handler(CallbackQueryHandler(handle_block, pattern="^block_"))
+
+    app.add_handler(CallbackQueryHandler(buy_card, pattern="^buy_card_"))
+    app.add_handler(CallbackQueryHandler(send_card_to_user, pattern="^send_card_"))
+    app.add_handler(CallbackQueryHandler(use_card, pattern="^use_card_"))
+    app.add_handler(CallbackQueryHandler(handle_card_accept, pattern="^card_accept_"))
+    app.add_handler(CallbackQueryHandler(handle_card_deny, pattern="^card_deny_"))
+
+    app.add_handler(CallbackQueryHandler(handle_profile_callback, pattern="^profile_|^edit_"))
+
+    app.add_handler(CallbackQueryHandler(handle_settings_callback, pattern="^settings_"))
+
+    app.add_handler(CallbackQueryHandler(handle_location_perm, pattern="^loc_perm_"))
+
+    app.add_handler(CallbackQueryHandler(handle_admin_callback, pattern="^admin_|^broadcast_|^resolve_"))
+
+    app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        handle_all_text
+    ))
+
+    app.run_polling()
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
