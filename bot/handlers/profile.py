@@ -12,17 +12,22 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     photos = user['photos'].split(',') if user['photos'] else []
     verified = "Ha" if user['is_verified'] else "Yo'q"
+    interests = user['interests'] or 'Kiritilmagan'
+    goal = user['goal'] or 'Kiritilmagan'
+    bio = user['bio'] or 'Kiritilmagan'
+    balance = f"{user['balance']:,}"
+    tariff = user['tariff'].upper()
     text = (
-        f"👤 Sizning profilingiz\n\n"
+        "👤 Sizning profilingiz\n\n"
         f"🆔 #{user['unique_id']}\n"
         f"👤 Ism: {user['full_name']}\n"
         f"🎂 Yosh: {user['age']}\n"
         f"📍 Shahar: {user['city']}\n"
-        f"❤️ Qiziqishlar: {user['interests'] or 'Kiritilmagan'}\n"
-        f"🎯 Maqsad: {user['goal'] or 'Kiritilmagan'}\n"
-        f"📝 Bio: {user['bio'] or 'Kiritilmagan'}\n\n"
-        f"⭐ Tarif: {user['tariff'].upper()}\n"
-        f"💰 Balans: {user['balance']:,} so'm\n"
+        f"❤️ Qiziqishlar: {interests}\n"
+        f"🎯 Maqsad: {goal}\n"
+        f"📝 Bio: {bio}\n\n"
+        f"⭐ Tarif: {tariff}\n"
+        f"💰 Balans: {balance} so'm\n"
         f"✅ Tasdiqlangan: {verified}"
     )
     if photos:
@@ -47,7 +52,7 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
 
     elif data == "profile_delete":
         await query.message.reply_text(
-            "⚠️ Profilingiz o'chirilsinmi?\n"
+            "Profilingiz o'chirilsinmi?\n"
             "Bu amalni qaytarib bo'lmaydi!",
             reply_markup=confirm_delete()
         )
@@ -55,7 +60,7 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
     elif data == "profile_delete_confirm":
         await delete_user(update.effective_user.id)
         await query.message.reply_text(
-            "🗑 Profilingiz o'chirildi.\n"
+            "Profilingiz o'chirildi.\n"
             "Qayta ro'yxatdan o'tish uchun /start bosing."
         )
 
@@ -65,12 +70,12 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
     elif data.startswith("edit_"):
         field = data.split('_')[1]
         fields = {
-            'photos': '📸 Yangi rasm yuboring:',
-            'name': '👤 Yangi ismingizni kiriting:',
-            'interests': '❤️ Yangi qiziqishlaringizni kiriting:',
-            'bio': '📝 Yangi bio yozing:',
-            'goal': '🎯 Yangi maqsadingizni kiriting:',
-            'city': '📍 Yangi shahringizni kiriting:'
+            'photos': 'Yangi rasm yuboring:',
+            'name': 'Yangi ismingizni kiriting:',
+            'interests': 'Yangi qiziqishlaringizni kiriting:',
+            'bio': 'Yangi bio yozing:',
+            'goal': 'Yangi maqsadingizni kiriting:',
+            'city': 'Yangi shahringizni kiriting:'
         }
         context.user_data['edit_field'] = field
         await query.message.reply_text(fields.get(field, "Ma'lumot kiriting:"))
@@ -85,7 +90,7 @@ async def handle_edit_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.message.photo:
             file_id = update.message.photo[-1].file_id
             await update_user(tg_id, photos=file_id)
-            await update.message.reply_text("✅ Rasm yangilandi!")
+            await update.message.reply_text("Rasm yangilandi!")
             context.user_data['edit_field'] = None
     else:
         db_fields = {
@@ -98,5 +103,5 @@ async def handle_edit_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
         db_field = db_fields.get(field)
         if db_field:
             await update_user(tg_id, **{db_field: update.message.text})
-            await update.message.reply_text("✅ Ma'lumot yangilandi!")
+            await update.message.reply_text("Ma'lumot yangilandi!")
             context.user_data['edit_field'] = None
