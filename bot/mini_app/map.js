@@ -1,7 +1,7 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const BOT_API = "https://your-railway-url.up.railway.app";
+const BOT_API = "https://http://worker-production-a6eb4.up.railway.app";
 
 ymaps.ready(async function () {
     const map = new ymaps.Map("map", {
