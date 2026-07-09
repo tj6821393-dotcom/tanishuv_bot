@@ -2,8 +2,8 @@ from telegram import ReplyKeyboardMarkup
 
 def main_menu():
     keyboard = [
-        ["🔍 Qidiruv", "👤 Profil"],
-        ["🔔 Bildirishnomalar", "💌 Xabarlar"],
+        ["🔍 Qidiruv", "🔍 ID bilan qidiruv"],
+        ["👤 Profil", "🔔 Bildirishnomalar"],
         ["💳 Balans to'ldirish", "📊 Statistika"],
         ["⚙️ Sozlamalar"]
     ]

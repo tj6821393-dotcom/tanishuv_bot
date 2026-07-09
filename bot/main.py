@@ -126,9 +126,9 @@ def main():
     app.add_handler(get_payment_handler())
 
     app.add_handler(MessageHandler(filters.Regex("🔍 Qidiruv"), show_search))
+    app.add_handler(MessageHandler(filters.Regex("🔍 ID bilan qidiruv"), show_messages))
     app.add_handler(MessageHandler(filters.Regex("👤 Profil"), show_profile))
     app.add_handler(MessageHandler(filters.Regex("🔔 Bildirishnomalar"), show_notifications))
-    app.add_handler(MessageHandler(filters.Regex("💌 Xabarlar"), show_messages))
     app.add_handler(MessageHandler(filters.Regex("⚙️ Sozlamalar"), show_settings))
     app.add_handler(MessageHandler(filters.Regex("📊 Statistika"), show_stats))
     app.add_handler(MessageHandler(filters.Regex("💳 Balans to'ldirish"), show_payment))

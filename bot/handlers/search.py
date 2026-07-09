@@ -198,7 +198,7 @@ async def handle_like(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Tanishish kartochkasi (15,000 som)"""
+    """Tanishish kartochkasi (15,000 som) - guruh yaratish"""
     query = update.callback_query
     await query.answer()
     tg_id = update.effective_user.id
@@ -225,24 +225,66 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Match yaratish
     await create_match(tg_id, to_user)
     
-    # Yigitga xabar
-    await query.message.reply_text(
-        f"✅ Tanishish tasdiqlandi!\n"
-        f"Endi yozishingiz mumkin. 🆔 #{target['unique_id']}"
-    )
+    # Kontaktlarni olish
+    sender_contact = f"@{user.get('username', '')}" if user.get('username') else user.get('phone_number', 'Noma\'lum')
+    target_contact = f"@{target.get('username', '')}" if target.get('username') else target.get('phone_number', 'Noma\'lum')
     
-    # Qizga bildirishnoma
-    await add_notification(
-        to_user,
-        f"💌 {user['full_name']} (ID: #{user['unique_id']}) siz bilan tanishdi!"
-    )
-    await context.bot.send_message(
-        chat_id=to_user,
-        text=f"💌 Yangi tanishish so'rovi!\n\n"
-             f"💌 #{user['unique_id']} ({user['full_name']}) siz bilan tanishishni xohlaydi!\n\n"
-             f"🆔 Ularning ID: #{user['unique_id']}\n\n"
-             f"Endi siz ham yozishingiz mumkin!"
-    )
+    # Guruh yaratish
+    try:
+        group = await context.bot.create_group_chat(
+            chat_title=f"💬 {user['full_name']} & {target['full_name']}",
+            description=f"Tanishish uchun yaratilgan guruh\n\n"
+                       f"👤 {user['full_name']}: {sender_contact}\n"
+                       f"👤 {target['full_name']}: {target_contact}"
+        )
+        
+        # Guruhga a'zolarni qo'shish
+        await context.bot.add_chat_member(group.chat_id, tg_id)
+        await context.bot.add_chat_member(group.chat_id, to_user)
+        
+        # Guruhga xabar
+        await context.bot.send_message(
+            chat_id=group.chat_id,
+            text=f"🎉 Guruh yaratildi!\n\n"
+                 f"👤 {user['full_name']}: {sender_contact}\n"
+                 f"👤 {target['full_name']}: {target_contact}\n\n"
+                 f"💬 Bu yerda tanishishingiz mumkin!"
+        )
+        
+        # Yigitga xabar
+        await query.message.reply_text(
+            f"✅ Tanishish tasdiqlandi!\n\n"
+            f"💰 {PRICE_TANISHISH:,} so'm yechildi\n"
+            f"💬 Guruh yaratildi!\n\n"
+            f"📎 Kontaktlar:\n"
+            f"👤 Siz: {sender_contact}\n"
+            f"👤 {target['full_name']}: {target_contact}"
+        )
+        
+        # Qizga xabar
+        await context.bot.send_message(
+            chat_id=to_user,
+            text=f"💌 #{user['unique_id']} ({user['full_name']}) siz bilan tanishdi!\n\n"
+                 f"💬 Guruh yaratildi!\n\n"
+                 f"📎 Kontaktlar:\n"
+                 f"👤 {user['full_name']}: {sender_contact}\n"
+                 f"👤 Siz: {target_contact}"
+        )
+        
+    except Exception as e:
+        # Xato bo'lsa, oddiy xabar
+        await query.message.reply_text(
+            f"✅ Tanishish tasdiqlandi!\n\n"
+            f"💰 {PRICE_TANISHISH:,} so'm yechildi\n\n"
+            f"📎 Kontaktlar:\n"
+            f"👤 Siz: {sender_contact}\n"
+            f"👤 {target['full_name']}: {target_contact}"
+        )
+        await context.bot.send_message(
+            chat_id=to_user,
+            text=f"💌 #{user['unique_id']} ({user['full_name']}) siz bilan tanishdi!\n\n"
+                 f"📎 {user['full_name']}: {sender_contact}"
+        )
 
 
 async def handle_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
