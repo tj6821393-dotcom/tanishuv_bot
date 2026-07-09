@@ -8,8 +8,9 @@ from bot.database.connection import create_pool, close_pool
 from bot.database.models import create_tables
 
 from bot.handlers.start import get_start_handler
-from bot.handlers.search import show_search, handle_like, handle_next, handle_block
-from bot.handlers.shop import show_shop, buy_card, send_card_to_user, use_card, handle_card_accept, handle_card_deny
+from bot.handlers.search import (
+    show_search, handle_like, handle_next, handle_prev_user, handle_tanishish
+)
 from bot.handlers.payment import get_payment_handler, show_payment
 from bot.handlers.admin import admin_panel, handle_admin_callback, handle_admin_text
 from bot.handlers.profile import show_profile, handle_profile_callback, handle_edit_input
@@ -54,19 +55,28 @@ async def show_stats(update, context):
 
 
 async def handle_location_perm(update, context):
-    from bot.database.queries import set_location_perm, get_user
+    from bot.database.queries import set_location_perm, get_user, deduct_balance, get_balance
+    from bot.handlers.search import PRICE_LOCATION
     query = update.callback_query
     await query.answer()
     parts = query.data.split('_')
     perm_type = parts[2]
     from_user_id = int(parts[3])
     tg_id = update.effective_user.id
-
+    
     if perm_type == 'deny':
         await query.message.reply_text("❌ Rad etdingiz.")
         return
 
+    # Ruxsat berildi - pul yechish
+    success = await deduct_balance(from_user_id, PRICE_LOCATION)
+    if not success:
+        await query.message.reply_text("❌ Xatolik! Yigitning balansida yetarli mablag' yo'q.")
+        return
+    
     await set_location_perm(tg_id, from_user_id, perm_type)
+    
+    sender = await get_user(from_user_id)
 
     if perm_type == 'permanent':
         await query.message.reply_text(
@@ -75,7 +85,7 @@ async def handle_location_perm(update, context):
         )
         await context.bot.send_message(
             chat_id=from_user_id,
-            text="✅ Lokatsiya ruxsati olindi!\n"
+            text=f"✅ {sender['full_name']} ruxsat berdi!\n"
                  "Mini App orqali ko'rishingiz mumkin."
         )
     elif perm_type == 'once':
@@ -85,7 +95,7 @@ async def handle_location_perm(update, context):
         )
         await context.bot.send_message(
             chat_id=from_user_id,
-            text="⏳ 1 soatlik lokatsiya ruxsati olindi!"
+            text=f"⏳ {sender['full_name']} 1 soatlik ruxsat berdi!"
         )
 
 
@@ -116,26 +126,21 @@ def main():
     app.add_handler(get_payment_handler())
 
     app.add_handler(MessageHandler(filters.Regex("🔍 Qidiruv"), show_search))
-    app.add_handler(MessageHandler(filters.Regex("🛍️ Do'kon"), show_shop))
     app.add_handler(MessageHandler(filters.Regex("👤 Profil"), show_profile))
     app.add_handler(MessageHandler(filters.Regex("🔔 Bildirishnomalar"), show_notifications))
     app.add_handler(MessageHandler(filters.Regex("💌 Xabarlar"), show_messages))
     app.add_handler(MessageHandler(filters.Regex("⚙️ Sozlamalar"), show_settings))
     app.add_handler(MessageHandler(filters.Regex("📊 Statistika"), show_stats))
+    app.add_handler(MessageHandler(filters.Regex("💳 Balans to'ldirish"), show_payment))
 
     app.add_handler(MessageHandler(filters.LOCATION, handle_new_location))
 
     app.add_handler(CommandHandler("admin", admin_panel))
 
     app.add_handler(CallbackQueryHandler(handle_like, pattern="^like_"))
+    app.add_handler(CallbackQueryHandler(handle_tanishish, pattern="^tanishish_"))
+    app.add_handler(CallbackQueryHandler(handle_prev_user, pattern="^prev_user"))
     app.add_handler(CallbackQueryHandler(handle_next, pattern="^next_user"))
-    app.add_handler(CallbackQueryHandler(handle_block, pattern="^block_"))
-
-    app.add_handler(CallbackQueryHandler(buy_card, pattern="^buy_card_"))
-    app.add_handler(CallbackQueryHandler(send_card_to_user, pattern="^send_card_"))
-    app.add_handler(CallbackQueryHandler(use_card, pattern="^use_card_"))
-    app.add_handler(CallbackQueryHandler(handle_card_accept, pattern="^card_accept_"))
-    app.add_handler(CallbackQueryHandler(handle_card_deny, pattern="^card_deny_"))
 
     app.add_handler(CallbackQueryHandler(handle_profile_callback, pattern="^profile_|^edit_"))
 

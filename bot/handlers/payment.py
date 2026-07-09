@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters, CommandHandler
+from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters
 from bot.database.queries import create_transaction, add_balance, get_balance
 from bot.keyboards.payment_kb import payment_menu
 from bot.keyboards.admin_kb import payment_actions
@@ -11,12 +11,16 @@ async def show_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_id = update.effective_user.id
     balance = await get_balance(tg_id)
     await update.message.reply_text(
-        f"💰 Balansingiz: {balance:,} so'm\n\n"
-        "Balansni to'ldirish uchun quyidagi karta raqamiga pul o'tkazing:\n\n"
+        f"💳 Balans to'ldirish\n\n"
+        f"💰 Joriy balansingiz: {balance:,} so'm\n\n"
+        "⚠️ DIQQAT - Narxlar:\n"
+        "💌 Tanishish: 15,000 som\n"
+        "💍 Oila qurish niyati (statistika): 35,000 som\n"
+        "📍 Lokatsiya so'rovi: 25,000 som\n\n"
         f"🏦 Karta: <code>{CARD_NUMBER}</code>\n"
         f"👤 Egasi: {CARD_OWNER}\n\n"
-        f"⚠️ Minimal summa: {MIN_PAYMENT:,} so'm\n\n"
-        "To'lagan summani kiriting (so'mda):",
+        f"Minimal to'ldirish: {MIN_PAYMENT:,} som\n\n"
+        "To'lovdan keyin chekni shu yerga yuboring:",
         parse_mode='HTML',
         reply_markup=payment_menu()
     )
