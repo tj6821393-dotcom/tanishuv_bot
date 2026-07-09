@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     telegram_id BIGINT UNIQUE NOT NULL,
     unique_id VARCHAR(20) UNIQUE NOT NULL,
+    username VARCHAR(100),
+    phone_number VARCHAR(20),
     full_name VARCHAR(100) NOT NULL,
     gender VARCHAR(10) NOT NULL,
     age INTEGER NOT NULL,

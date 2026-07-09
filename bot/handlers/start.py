@@ -1,11 +1,11 @@
 import random
 import string
-from telegram import Update
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 from bot.database.queries import get_user, create_user
 from bot.keyboards.main_menu import main_menu
 
-(NAME, GENDER, AGE, CITY, LOCATION, PHOTOS, INTERESTS, GOAL, BIO) = range(9)
+(NAME, GENDER, AGE, CITY, PHOTOS, CONTACT, LOCATION, INTERESTS, GOAL, BIO) = range(10)
 
 def generate_unique_id():
     digits = ''.join(random.choices(string.digits, k=5))
@@ -28,7 +28,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['full_name'] = update.message.text
-    from telegram import ReplyKeyboardMarkup
     kb = ReplyKeyboardMarkup([["👨 Erkak", "👩 Ayol"]], resize_keyboard=True, one_time_keyboard=True)
     await update.message.reply_text("Jinsingizni tanlang:", reply_markup=kb)
     return GENDER
@@ -60,20 +59,6 @@ async def get_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['city'] = update.message.text
-    from telegram import KeyboardButton, ReplyKeyboardMarkup
-    kb = ReplyKeyboardMarkup([
-        [KeyboardButton("📍 Lokatsiyamni yuborish", request_location=True)]
-    ], resize_keyboard=True, one_time_keyboard=True)
-    await update.message.reply_text(
-        "📍 Lokatsiyangizni yuboring:\n"
-        "(Bu xaritada ko'rinish uchun kerak)", reply_markup=kb
-    )
-    return LOCATION
-
-async def get_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.location:
-        context.user_data['latitude'] = update.message.location.latitude
-        context.user_data['longitude'] = update.message.location.longitude
     await update.message.reply_text(
         "📸 Profil rasmingizni yuboring (1-3 ta rasm):\n"
         "(Birinchi rasm asosiy bo'ladi)"
@@ -86,7 +71,6 @@ async def get_photos(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file_id = update.message.photo[-1].file_id
         context.user_data['photos'].append(file_id)
         if len(context.user_data['photos']) < 3:
-            from telegram import ReplyKeyboardMarkup
             kb = ReplyKeyboardMarkup([["✅ Tayyor"]], resize_keyboard=True, one_time_keyboard=True)
             await update.message.reply_text(
                 f"✅ Rasm qabul qilindi ({len(context.user_data['photos'])}/3)\n"
@@ -98,25 +82,61 @@ async def get_photos(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.user_data['photos']:
             await update.message.reply_text("Kamida 1 ta rasm yuborish shart!")
             return PHOTOS
-        interests_kb = [
-            ["⚽ Sport", "🎵 Musiqa", "✈️ Sayohat"],
-            ["🎬 Kino", "📚 Kitob", "🎮 O'yin"],
-            ["🍳 Oshpazlik", "🎨 San'at", "💻 Texnologiya"],
-            ["✅ Tayyor"]
-        ]
-        from telegram import ReplyKeyboardMarkup
+        # Kontakt ulashish so'rovi
+        kb = ReplyKeyboardMarkup([
+            [KeyboardButton("📱 Kontaktni ulashish", request_contact=True)]
+        ], resize_keyboard=True, one_time_keyboard=True)
         await update.message.reply_text(
-            "❤️ Qiziqishlaringizni tanlang:",
-            reply_markup=ReplyKeyboardMarkup(interests_kb, resize_keyboard=True)
+            "📱 Kontaktingizni ulashing (telefon raqamingiz uchun):\n"
+            "Bu ixtiyoriy - 'Skip' yozib o'tkazib ketishingiz mumkin.",
+            reply_markup=kb
         )
-        context.user_data['interests'] = []
-        return INTERESTS
+        return CONTACT
     return PHOTOS
+
+async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.contact:
+        context.user_data['phone_number'] = update.message.contact.phone_number
+        context.user_data['username'] = update.effective_user.username
+        await update.message.reply_text("✅ Kontakt qabul qilindi!")
+    elif update.message.text and update.message.text.lower() == 'skip':
+        context.user_data['phone_number'] = None
+        context.user_data['username'] = update.effective_user.username
+    else:
+        # Lokatsiyaga o'tish
+        context.user_data['phone_number'] = None
+        context.user_data['username'] = update.effective_user.username
+    
+    kb = ReplyKeyboardMarkup([
+        [KeyboardButton("📍 Lokatsiyamni yuborish", request_location=True)]
+    ], resize_keyboard=True, one_time_keyboard=True)
+    await update.message.reply_text(
+        "📍 Lokatsiyangizni yuboring:\n"
+        "(Bu xaritada ko'rinish uchun kerak)",
+        reply_markup=kb
+    )
+    return LOCATION
+
+async def get_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.location:
+        context.user_data['latitude'] = update.message.location.latitude
+        context.user_data['longitude'] = update.message.location.longitude
+    interests_kb = [
+        ["⚽ Sport", "🎵 Musiqa", "✈️ Sayohat"],
+        ["🎬 Kino", "📚 Kitob", "🎮 O'yin"],
+        ["🍳 Oshpazlik", "🎨 San'at", "💻 Texnologiya"],
+        ["✅ Tayyor"]
+    ]
+    await update.message.reply_text(
+        "❤️ Qiziqishlaringizni tanlang:",
+        reply_markup=ReplyKeyboardMarkup(interests_kb, resize_keyboard=True)
+    )
+    context.user_data['interests'] = []
+    return INTERESTS
 
 async def get_interests(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     if text == "✅ Tayyor":
-        from telegram import ReplyKeyboardMarkup
         goal_kb = ReplyKeyboardMarkup([
             ["💍 Jiddiy tanishuv", "🤝 Do'stlik"],
             ["💬 Suhbat"]
@@ -146,6 +166,8 @@ async def get_bio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = {
         'telegram_id': update.effective_user.id,
         'unique_id': unique_id,
+        'username': context.user_data.get('username'),
+        'phone_number': context.user_data.get('phone_number'),
         'full_name': context.user_data['full_name'],
         'gender': context.user_data['gender'],
         'age': context.user_data['age'],
@@ -174,13 +196,17 @@ def get_start_handler():
             GENDER: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_gender)],
             AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_age)],
             CITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_city)],
-            LOCATION: [
-                MessageHandler(filters.LOCATION, get_location),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, get_location)
-            ],
             PHOTOS: [
                 MessageHandler(filters.PHOTO, get_photos),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, get_photos)
+            ],
+            CONTACT: [
+                MessageHandler(filters.CONTACT, get_contact),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_contact)
+            ],
+            LOCATION: [
+                MessageHandler(filters.LOCATION, get_location),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_location)
             ],
             INTERESTS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_interests)],
             GOAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_goal)],

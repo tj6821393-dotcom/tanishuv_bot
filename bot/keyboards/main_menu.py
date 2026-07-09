@@ -1,10 +1,10 @@
-from telegram import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ReplyKeyboardMarkup
 
 def main_menu():
     keyboard = [
-        ["🗺️ Xarita", "🔍 Qidiruv"],
+        ["🔍 Qidiruv", "👤 Profil"],
         ["🔔 Bildirishnomalar", "💌 Xabarlar"],
-        ["🛍️ Do'kon", "👤 Profil"],
-        ["📊 Statistika", "⚙️ Sozlamalar"]
+        ["💳 Balans to'ldirish", "📊 Statistika"],
+        ["⚙️ Sozlamalar"]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
