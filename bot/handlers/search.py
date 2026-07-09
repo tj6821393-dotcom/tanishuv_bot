@@ -65,6 +65,7 @@ async def handle_like(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_id = update.effective_user.id
     to_user = int(query.data.split('_')[1])
     user = await get_user(tg_id)
+    target = await get_user(to_user)
     like_limit = LIKE_LIMIT_FREE if user['tariff'] == 'free' else LIKE_LIMIT_PREMIUM
     current_likes = await get_like_count(tg_id)
     if user['tariff'] == 'free' and current_likes >= like_limit:
@@ -78,7 +79,6 @@ async def handle_like(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_match = await check_match(tg_id, to_user)
         if is_match:
             await create_match(tg_id, to_user)
-            target = await get_user(to_user)
             await query.message.reply_text(
                 f"🎉 Match! {target['full_name']} ham sizni yoqtirdi!\n"
                 f"Endi yozishingiz mumkin. 🆔 #{target['unique_id']}"
@@ -87,15 +87,26 @@ async def handle_like(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 to_user,
                 f"🤝 Siz #{user['unique_id']} bilan match bo'ldingiz!"
             )
+            # Match bo'lganda ikki tomon ham xabar oladi
             await context.bot.send_message(
                 chat_id=to_user,
-                text=f"🤝 Siz match bo'ldingiz!\n"
-                     f"#{user['unique_id']} sizni yoqtirdi!"
+                text=f"🎉 Siz match bo'ldingiz!\n\n"
+                     f"❤️ #{user['unique_id']} ({user['full_name']}) sizni yoqtirdi!\n\n"
+                     f"🆔 Ularning ID: #{user['unique_id']}\n"
+                     f"Endi siz ham yozishingiz mumkin!"
             )
         else:
+            # Oddiy like - qabul qiluvchiga SMS kabi bildirishnoma yuborish
             await add_notification(
                 to_user,
                 f"❤️ #{user['unique_id']} sizni yoqtirdi!"
+            )
+            # 📱 SMS kabi to'g'ridan-to'g'ri xabar yuborish
+            await context.bot.send_message(
+                chat_id=to_user,
+                text=f"💌 Yangi bildirishnoma!\n\n"
+                     f"❤️ #{user['unique_id']} ({user['full_name']}) sizni yoqtirdi!\n\n"
+                     f"👉 Qidiruv orqali ularni topishingiz mumkin."
             )
             await query.answer("❤️ Yoqtirildi!", show_alert=False)
     current_user = await get_user(tg_id)

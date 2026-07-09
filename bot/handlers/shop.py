@@ -79,13 +79,29 @@ async def use_card(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Xatolik yuz berdi!")
         return
     await use_user_card(tg_id, card_id)
-    await context.bot.send_message(
-        chat_id=to_user_id,
-        text=f"{card['emoji']} Sizga #{sender['unique_id']} dan kartochka keldi!\n\n"
-             f"💬 \"{card['text']}\"\n\n"
-             f"Javob berasizmi?",
-        reply_markup=card_response_kb(tg_id)
-    )
+    
+    # Tanishish xati yuborish - SMS kabi bildirishnoma
+    if card['card_type'] == 'simple' or card['card_type'] == 'serious' or card['card_type'] == 'family':
+        # 📱 Tanishish bildirishnomasi
+        await context.bot.send_message(
+            chat_id=to_user_id,
+            text=f"💌 Yangi tanishish so'rovi!\n\n"
+                 f"{card['emoji']} #{sender['unique_id']} ({sender['full_name']}) siz bilan tanishishni xohlaydi!\n\n"
+                 f"💬 \"{card['text']}\"\n\n"
+                 f"🆔 Ularning ID: #{sender['unique_id']}\n\n"
+                 f"Javob berasizmi?",
+            reply_markup=card_response_kb(tg_id)
+        )
+    else:
+        # Lokatsiya kartochkasi uchun oddiy xabar
+        await context.bot.send_message(
+            chat_id=to_user_id,
+            text=f"{card['emoji']} Sizga #{sender['unique_id']} dan kartochka keldi!\n\n"
+                 f"💬 \"{card['text']}\"\n\n"
+                 f"Javob berasizmi?",
+            reply_markup=card_response_kb(tg_id)
+        )
+    
     await add_notification(
         to_user_id,
         f"{card['emoji']} #{sender['unique_id']} sizga kartochka yubordi!"
