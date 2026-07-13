@@ -11,24 +11,15 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Avval ro'yxatdan o'ting! /start")
         return
     photos = user['photos'].split(',') if user['photos'] else []
-    verified = "Ha" if user['is_verified'] else "Yo'q"
-    interests = user['interests'] or 'Kiritilmagan'
-    goal = user['goal'] or 'Kiritilmagan'
-    bio = user['bio'] or 'Kiritilmagan'
     balance = f"{user['balance']:,}"
-    tariff = user['tariff'].upper()
     text = (
         "👤 Sizning profilingiz\n\n"
         f"🆔 #{user['unique_id']}\n"
         f"👤 Ism: {user['full_name']}\n"
         f"🎂 Yosh: {user['age']}\n"
         f"📍 Shahar: {user['city']}\n"
-        f"❤️ Qiziqishlar: {interests}\n"
-        f"🎯 Maqsad: {goal}\n"
-        f"📝 Bio: {bio}\n\n"
-        f"⭐ Tarif: {tariff}\n"
-        f"💰 Balans: {balance} so'm\n"
-        f"✅ Tasdiqlangan: {verified}"
+        f"📱 Telefon: {user['phone_number'] or 'Ko'rsatilmagan'}\n\n"
+        f"💰 Balans: {balance} so'm"
     )
     if photos:
         await update.message.reply_photo(
@@ -72,9 +63,6 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
         fields = {
             'photos': 'Yangi rasm yuboring:',
             'name': 'Yangi ismingizni kiriting:',
-            'interests': 'Yangi qiziqishlaringizni kiriting:',
-            'bio': 'Yangi bio yozing:',
-            'goal': 'Yangi maqsadingizni kiriting:',
             'city': 'Yangi shahringizni kiriting:'
         }
         context.user_data['edit_field'] = field
@@ -90,18 +78,15 @@ async def handle_edit_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.message.photo:
             file_id = update.message.photo[-1].file_id
             await update_user(tg_id, photos=file_id)
-            await update.message.reply_text("Rasm yangilandi!")
+            await update.message.reply_text("✅ Rasm yangilandi!")
             context.user_data['edit_field'] = None
     else:
         db_fields = {
             'name': 'full_name',
-            'interests': 'interests',
-            'bio': 'bio',
-            'goal': 'goal',
             'city': 'city'
         }
         db_field = db_fields.get(field)
         if db_field:
             await update_user(tg_id, **{db_field: update.message.text})
-            await update.message.reply_text("Ma'lumot yangilandi!")
+            await update.message.reply_text("✅ Ma'lumot yangilandi!")
             context.user_data['edit_field'] = None

@@ -15,8 +15,7 @@ from bot.handlers.payment import get_payment_handler, show_payment
 from bot.handlers.admin import admin_panel, handle_admin_callback, handle_admin_text
 from bot.handlers.profile import show_profile, handle_profile_callback, handle_edit_input
 from bot.handlers.messages import show_messages, handle_message_input
-from bot.handlers.notifications import show_notifications
-from bot.handlers.settings import show_settings, handle_settings_callback, handle_new_location
+from bot.handlers.settings import show_settings, handle_settings_callback
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,77 +25,6 @@ async def post_init(application):
     await create_tables(pool)
     application.bot_data['pool'] = pool
     print("✅ Bot ishga tushdi!")
-
-
-async def show_stats(update, context):
-    from bot.database.queries import get_user
-    from bot.database.connection import get_pool
-    tg_id = update.effective_user.id
-    user = await get_user(tg_id)
-    if not user:
-        await update.message.reply_text("Avval ro'yxatdan o'ting! /start")
-        return
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        views = await conn.fetchval(
-            "SELECT COUNT(*) FROM likes WHERE to_user=$1", tg_id
-        )
-        matches = await conn.fetchval(
-            "SELECT COUNT(*) FROM matches WHERE user1=$1 OR user2=$1", tg_id
-        )
-    await update.message.reply_text(
-        f"📊 Statistika\n\n"
-        f"🆔 #{user['unique_id']}\n"
-        f"❤️ Yoqtirishlar: {views}\n"
-        f"🤝 Matchlar: {matches}\n"
-        f"💰 Balans: {user['balance']:,} so'm\n"
-        f"⭐ Tarif: {user['tariff'].upper()}"
-    )
-
-
-async def handle_location_perm(update, context):
-    from bot.database.queries import set_location_perm, get_user, deduct_balance, get_balance
-    from bot.handlers.search import PRICE_LOCATION
-    query = update.callback_query
-    await query.answer()
-    parts = query.data.split('_')
-    perm_type = parts[2]
-    from_user_id = int(parts[3])
-    tg_id = update.effective_user.id
-    
-    if perm_type == 'deny':
-        await query.message.reply_text("❌ Rad etdingiz.")
-        return
-
-    # Ruxsat berildi - pul yechish
-    success = await deduct_balance(from_user_id, PRICE_LOCATION)
-    if not success:
-        await query.message.reply_text("❌ Xatolik! Yigitning balansida yetarli mablag' yo'q.")
-        return
-    
-    await set_location_perm(tg_id, from_user_id, perm_type)
-    
-    sender = await get_user(from_user_id)
-
-    if perm_type == 'permanent':
-        await query.message.reply_text(
-            "✅ Doimiy ruxsat berildi.\n"
-            "Sozlamalar orqali istalgan vaqtda o'chirishingiz mumkin."
-        )
-        await context.bot.send_message(
-            chat_id=from_user_id,
-            text=f"✅ {sender['full_name']} ruxsat berdi!\n"
-                 "Mini App orqali ko'rishingiz mumkin."
-        )
-    elif perm_type == 'once':
-        await query.message.reply_text(
-            "⏳ Bir martalik ruxsat berildi.\n"
-            "1 soatdan keyin avtomatik o'chadi."
-        )
-        await context.bot.send_message(
-            chat_id=from_user_id,
-            text=f"⏳ {sender['full_name']} 1 soatlik ruxsat berdi!"
-        )
 
 
 async def handle_all_text(update, context):
@@ -114,7 +42,7 @@ async def handle_all_text(update, context):
         await handle_edit_input(update, context)
         return
 
-    if context.user_data.get('messages_action'):
+    if context.user_data.get('search_by_id') or context.user_data.get('messages_action'):
         await handle_message_input(update, context)
         return
 
@@ -125,31 +53,31 @@ def main():
     app.add_handler(get_start_handler())
     app.add_handler(get_payment_handler())
 
+    # Main menu tugmalari
     app.add_handler(MessageHandler(filters.Regex("🔍 Qidiruv"), show_search))
+    app.add_handler(MessageHandler(filters.Regex("🆔 ID orqali"), show_messages))
     app.add_handler(MessageHandler(filters.Regex("👤 Profil"), show_profile))
-    app.add_handler(MessageHandler(filters.Regex("🔔 Bildirishnomalar"), show_notifications))
-    app.add_handler(MessageHandler(filters.Regex("💌 Xabarlar"), show_messages))
+    app.add_handler(MessageHandler(filters.Regex("💳 Balans"), show_payment))
     app.add_handler(MessageHandler(filters.Regex("⚙️ Sozlamalar"), show_settings))
-    app.add_handler(MessageHandler(filters.Regex("📊 Statistika"), show_stats))
-    app.add_handler(MessageHandler(filters.Regex("💳 Balans to'ldirish"), show_payment))
-
-    app.add_handler(MessageHandler(filters.LOCATION, handle_new_location))
 
     app.add_handler(CommandHandler("admin", admin_panel))
 
+    # Search callbacklar
     app.add_handler(CallbackQueryHandler(handle_like, pattern="^like_"))
     app.add_handler(CallbackQueryHandler(handle_tanishish, pattern="^tanishish_"))
     app.add_handler(CallbackQueryHandler(handle_prev_user, pattern="^prev_user"))
     app.add_handler(CallbackQueryHandler(handle_next, pattern="^next_user"))
 
+    # Profile callbacklar
     app.add_handler(CallbackQueryHandler(handle_profile_callback, pattern="^profile_|^edit_"))
 
+    # Settings callbacklar
     app.add_handler(CallbackQueryHandler(handle_settings_callback, pattern="^settings_"))
 
-    app.add_handler(CallbackQueryHandler(handle_location_perm, pattern="^loc_perm_"))
-
+    # Admin callbacklar
     app.add_handler(CallbackQueryHandler(handle_admin_callback, pattern="^admin_|^broadcast_|^resolve_"))
 
+    # Text handler (ID kiritish, admin text, edit input)
     app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         handle_all_text
