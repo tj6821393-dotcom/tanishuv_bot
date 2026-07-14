@@ -5,6 +5,7 @@ from bot.keyboards.profile_kb import profile_actions, profile_edit_fields, confi
 from bot.keyboards.main_menu import main_menu
 
 async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Profile view handler - updated for clean deploy
     tg_id = update.effective_user.id
     user = await get_user(tg_id)
     if not user:
