@@ -176,14 +176,24 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await create_match(tg_id, to_user)
     
     # Sender ga qiz haqida malumot berish
-    target_phone = target.get('phone_number') or 'Korsatilmagan'
-    target_username = f"@{target.get('username')}" if target.get('username') else 'Username yoq'
+    target_phone = target.get('phone_number')
+    target_username = target.get('username')
+    
+    contact_info = []
+    if target_phone:
+        contact_info.append(f"📱 Telefon: {target_phone}")
+    if target_username:
+        contact_info.append(f"🔗 @{target_username}")
+    
+    # Telegram profilga havola
+    contact_info.append(f"👤 Telegram: https://t.me/{target.get('username') or target.get('full_name', '').replace(' ', '_')}")
+    
+    contact_text = "\n".join(contact_info) if contact_info else "Bog'lanish mumkin emas"
     
     await query.message.reply_text(
         f"✅ Tanishish tasdiqlandi!\n\n"
-        f"👤 {target['full_name']} - #{target['unique_id']}\n"
-        f"📱 Telefon: {target_phone}\n"
-        f"🔗 {target_username}\n\n"
+        f"👤 {target['full_name']} - #{target['unique_id']}\n\n"
+        f"{contact_text}\n\n"
         f"Endi yozishingiz mumkin!"
     )
     
