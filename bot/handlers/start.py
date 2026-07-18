@@ -114,46 +114,53 @@ async def get_photos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return PHOTOS
 
 async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.contact:
-        context.user_data['phone_number'] = update.message.contact.phone_number
-        context.user_data['username'] = update.effective_user.username
-    else:
-        # Majburiy - kontakt yuborilishi shart
-        kb = ReplyKeyboardMarkup([
-            [KeyboardButton("📱 Kontaktni ulashish", request_contact=True)]
-        ], resize_keyboard=True, one_time_keyboard=True)
+    try:
+        if update.message.contact:
+            context.user_data['phone_number'] = update.message.contact.phone_number
+            context.user_data['username'] = update.effective_user.username
+        else:
+            kb = ReplyKeyboardMarkup([
+                [KeyboardButton("📱 Kontaktni ulashish", request_contact=True)]
+            ], resize_keyboard=True, one_time_keyboard=True)
+            await update.message.reply_text(
+                "❌ Kontakt ulashish KERAK!",
+                reply_markup=kb
+            )
+            return CONTACT
+        
+        unique_id = generate_unique_id()
+        data = {
+            'telegram_id': update.effective_user.id,
+            'unique_id': unique_id,
+            'username': context.user_data.get('username'),
+            'phone_number': context.user_data.get('phone_number'),
+            'full_name': context.user_data['full_name'],
+            'gender': context.user_data['gender'],
+            'age': context.user_data['age'],
+            'city': context.user_data.get('city'),
+            'bio': None,
+            'goal': None,
+            'interests': None,
+            'photos': ','.join(context.user_data.get('photos', [])),
+            'latitude': context.user_data.get('latitude'),
+            'longitude': context.user_data.get('longitude'),
+        }
+        await create_user(data)
         await update.message.reply_text(
-            "❌ Kontakt ulashish KERAK!\n\n"
-            "Telefon raqamingizni ulashing orqali sizga yozishish mumkin bo'ladi.",
-            reply_markup=kb
+            f"✅ Profil yaratildi!\n\n"
+            f"🆔 ID: #{unique_id}\n"
+            f"📱 {context.user_data['phone_number']}\n"
+            f"🔗 @{context.user_data['username'] or 'username yoq'}",
+            reply_markup=main_menu()
         )
-        return CONTACT
-    
-    unique_id = generate_unique_id()
-    data = {
-        'telegram_id': update.effective_user.id,
-        'unique_id': unique_id,
-        'username': context.user_data.get('username'),
-        'phone_number': context.user_data.get('phone_number'),
-        'full_name': context.user_data['full_name'],
-        'gender': context.user_data['gender'],
-        'age': context.user_data['age'],
-        'city': context.user_data.get('city'),
-        'bio': None,
-        'goal': None,
-        'interests': None,
-        'photos': ','.join(context.user_data.get('photos', [])),
-        'latitude': context.user_data.get('latitude'),
-        'longitude': context.user_data.get('longitude'),
-    }
-    await create_user(data)
-    await update.message.reply_text(
-        f"✅ Profil muvaffaqiyatli yaratildi!\n\n"
-        f"🆔 Sizning ID: #{unique_id}\n\n"
-        f"Endi tanishuvni boshlashingiz mumkin!",
-        reply_markup=main_menu()
-    )
-    return ConversationHandler.END
+        return ConversationHandler.END
+    except Exception as e:
+        print(f"ERROR in get_contact: {e}")
+        await update.message.reply_text(
+            "❌ Xatolik yuz berdi. /start bosib qayta urinib ko'ring.",
+            reply_markup=main_menu()
+        )
+        return ConversationHandler.END
 
 def get_start_handler():
     return ConversationHandler(
