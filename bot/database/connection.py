@@ -18,13 +18,14 @@ async def create_pool():
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        pool = await asyncpg.create_pool(DATABASE_URL, ssl=ctx)
+        # statement_cache_size=0 fixes pgbouncer issue
+        pool = await asyncpg.create_pool(DATABASE_URL, ssl=ctx, statement_cache_size=0)
         print("[DB] Connected successfully with SSL!")
     except Exception as e:
         print(f"[DB] SSL connection failed: {e}")
         print("[DB] Trying without SSL...")
         try:
-            pool = await asyncpg.create_pool(DATABASE_URL)
+            pool = await asyncpg.create_pool(DATABASE_URL, statement_cache_size=0)
             print("[DB] Connected successfully without SSL!")
         except Exception as e2:
             print(f"[DB] Both connection attempts failed: {e2}")
