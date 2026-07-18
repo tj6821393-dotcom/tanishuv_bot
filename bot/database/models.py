@@ -117,3 +117,19 @@ ON CONFLICT DO NOTHING;
 async def create_tables(pool):
     async with pool.acquire() as conn:
         await conn.execute(CREATE_TABLES)
+        
+        # Eski jadvallarga yangi ustunlarni qo'shish
+        await conn.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                    WHERE table_name='users' AND column_name='username') THEN
+                    ALTER TABLE users ADD COLUMN username VARCHAR(100);
+                END IF;
+                
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                    WHERE table_name='users' AND column_name='phone_number') THEN
+                    ALTER TABLE users ADD COLUMN phone_number VARCHAR(20);
+                END IF;
+            END $$;
+        """)
