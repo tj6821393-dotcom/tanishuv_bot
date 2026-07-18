@@ -85,6 +85,12 @@ def main():
         filters.TEXT & ~filters.COMMAND,
         handle_all_text
     ))
+    
+    # Contact handler for profile phone edit
+    app.add_handler(MessageHandler(
+        filters.CONTACT,
+        handle_all_text
+    ))
 
     app.run_polling()
 

@@ -12,6 +12,7 @@ def profile_edit_fields():
         [InlineKeyboardButton("📸 Rasm", callback_data="edit_photos")],
         [InlineKeyboardButton("👤 Ism", callback_data="edit_name")],
         [InlineKeyboardButton("📖 Story", callback_data="edit_bio")],
+        [InlineKeyboardButton("📱 Telefon", callback_data="edit_phone")],
         [InlineKeyboardButton("🔙 Orqaga", callback_data="profile_back")]
     ])
 

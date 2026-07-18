@@ -1,4 +1,4 @@
-from telegram import Update
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from bot.database.queries import get_user, update_user, delete_user
 from bot.keyboards.profile_kb import profile_actions, profile_edit_fields, confirm_delete
@@ -73,6 +73,18 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
 
     elif data.startswith("edit_"):
         field = data.split('_')[1]
+        
+        if field == 'phone':
+            kb = ReplyKeyboardMarkup([
+                [KeyboardButton("📱 Kontaktni ulashish", request_contact=True)]
+            ], resize_keyboard=True, one_time_keyboard=True)
+            await query.message.reply_text(
+                "📱 Telefon raqamingizni ulashing:",
+                reply_markup=kb
+            )
+            context.user_data['edit_field'] = 'phone'
+            return
+        
         fields = {
             'photos': 'Yangi rasm yuboring:',
             'name': 'Yangi ismingizni kiriting:',
@@ -93,6 +105,17 @@ async def handle_edit_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update_user(tg_id, photos=file_id)
             await update.message.reply_text("✅ Rasm yangilandi!")
             context.user_data['edit_field'] = None
+    
+    elif field == 'phone':
+        if update.message.contact:
+            phone = update.message.contact.phone_number
+            await update_user(tg_id, phone_number=phone)
+            await update.message.reply_text(f"✅ Telefon yangilandi: {phone}")
+        else:
+            await update.message.reply_text("❌ Iltimos, kontakt tugmasini bosing!")
+            return
+        context.user_data['edit_field'] = None
+    
     elif field == 'bio':
         await update_user(tg_id, bio=update.message.text)
         await update.message.reply_text("✅ Story yangilandi!")
