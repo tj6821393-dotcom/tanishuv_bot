@@ -175,45 +175,40 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await create_match(tg_id, to_user)
     
-    # Qarama-qarshi tomon uchun habar
-    sender_info = []
+    # Sender uchun habar
+    sender_contact = []
     if user.get('phone_number'):
-        sender_info.append(f"📱 Tel: {user['phone_number']}")
+        sender_contact.append(f"📱 {user['phone_number']}")
     if user.get('username'):
-        sender_info.append(f"🔗 @{user['username']}")
+        sender_contact.append(f"🔗 @{user['username']}")
     else:
-        # Username yo'q bo'lsa to'g'ridan Telegram havola
-        sender_info.append(f"👤 https://t.me/{user.get('full_name', 'user').replace(' ', '_')}")
+        sender_contact.append(f"👤 t.me/{user.get('full_name', 'user').replace(' ', '_')}")
     
-    sender_text = "\n".join(sender_info) if sender_info else "Bog'lanish ma'lumotlari yo'q"
-    
-    # Sender ga qarama-qarshi tomon haqida habar
-    target_info = []
+    # Target uchun habar  
+    target_contact = []
     if target.get('phone_number'):
-        target_info.append(f"📱 Tel: {target['phone_number']}")
+        target_contact.append(f"📱 {target['phone_number']}")
     if target.get('username'):
-        target_info.append(f"🔗 @{target['username']}")
+        target_contact.append(f"🔗 @{target['username']}")
     else:
-        # Username yo'q - to'g'ridan Telegram havola
-        target_info.append(f"👤 https://t.me/{target.get('full_name', 'user').replace(' ', '_')}")
+        target_contact.append(f"👤 t.me/{target.get('full_name', 'user').replace(' ', '_')}")
     
-    target_text = "\n".join(target_info) if target_info else "Bog'lanish ma'lumotlari yo'q"
+    sender_text = "\n".join(sender_contact)
+    target_text = "\n".join(target_contact)
     
     # Sender ga habar
     await query.message.reply_text(
         f"✅ Tanishuv tasdiqlandi! (-{PRICE_TANISHISH:,} so'm)\n\n"
         f"👤 {target['full_name']}\n"
-        f"{target_text}\n\n"
-        "Endi shaxsiy yozishingiz mumkin!"
+        f"{target_text}"
     )
     
-    # Qarama-qarshi tomonga habar
+    # Target ga habar
     await context.bot.send_message(
         chat_id=to_user,
         text=f"💌 Yangi tanishish!\n\n"
              f"👤 {user['full_name']}\n"
-             f"{sender_text}\n\n"
-             "Endi siz ham yozishingiz mumkin!"
+             f"{sender_text}"
     )
 
 
