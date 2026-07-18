@@ -186,12 +186,11 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=f"💌 Yangi tanishish so'rovi!\n\n"
              f"💌 #{user['unique_id']} ({user['full_name']}) siz bilan tanishishni xohlaydi!\n\n"
              f"🆔 Ularning ID: #{user['unique_id']}\n"
-             f"📱 Telefon: {user['phone_number'] or 'Ko'rsatilmagan'}\n\n"
+             f"📱 Telefon: {user['phone_number'] or \"Ko'rsatilmagan\"}\n\n"
              f"Endi siz ham yozishingiz mumkin!"
     )
 
 
-# RAILWAY TEST MARKER - CAN DELETE AFTER TEST
 async def handle_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()

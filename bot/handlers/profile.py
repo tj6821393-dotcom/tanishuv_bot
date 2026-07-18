@@ -19,7 +19,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👤 Ism: {user['full_name']}\n"
         f"🎂 Yosh: {user['age']}\n"
         f"📍 Shahar: {user['city']}\n"
-        f"📱 Telefon: {user['phone_number'] or 'Ko'rsatilmagan'}\n\n"
+        f"📱 Telefon: {user['phone_number'] or \"Ko'rsatilmagan\"}\n\n"
         f"💰 Balans: {balance} so'm"
     )
     if photos:
