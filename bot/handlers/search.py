@@ -175,41 +175,37 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await create_match(tg_id, to_user)
     
-    # Sender uchun habar
-    sender_contact = []
-    if user.get('phone_number'):
-        sender_contact.append(f"📱 {user['phone_number']}")
-    if user.get('username'):
-        sender_contact.append(f"🔗 @{user['username']}")
-    else:
-        sender_contact.append(f"👤 t.me/{user.get('full_name', 'user').replace(' ', '_')}")
+    # Sender contact
+    sender_phone = user.get('phone_number') or ''
+    sender_username = user.get('username') or ''
     
-    # Target uchun habar  
-    target_contact = []
-    if target.get('phone_number'):
-        target_contact.append(f"📱 {target['phone_number']}")
-    if target.get('username'):
-        target_contact.append(f"🔗 @{target['username']}")
-    else:
-        target_contact.append(f"👤 t.me/{target.get('full_name', 'user').replace(' ', '_')}")
-    
-    sender_text = "\n".join(sender_contact)
-    target_text = "\n".join(target_contact)
+    # Target contact
+    target_phone = target.get('phone_number') or ''
+    target_username = target.get('username') or ''
     
     # Sender ga habar
-    await query.message.reply_text(
-        f"✅ Tanishuv tasdiqlandi! (-{PRICE_TANISHISH:,} so'm)\n\n"
-        f"👤 {target['full_name']}\n"
-        f"{target_text}"
-    )
+    msg_to_sender = f"✅ Tanishuv tasdiqlandi! (-{PRICE_TANISHISH:,} so'm)\n\n"
+    msg_to_sender += f"👤 {target['full_name']}\n"
+    if target_phone:
+        msg_to_sender += f"📱 {target_phone}\n"
+    if target_username:
+        msg_to_sender += f"🔗 @{target_username}"
+    else:
+        msg_to_sender += f"📱 Shaxsiy yozing"
+    
+    await query.message.reply_text(msg_to_sender)
     
     # Target ga habar
-    await context.bot.send_message(
-        chat_id=to_user,
-        text=f"💌 Yangi tanishish!\n\n"
-             f"👤 {user['full_name']}\n"
-             f"{sender_text}"
-    )
+    msg_to_target = f"💌 Yangi tanishish!\n\n"
+    msg_to_target += f"👤 {user['full_name']}\n"
+    if sender_phone:
+        msg_to_target += f"📱 {sender_phone}\n"
+    if sender_username:
+        msg_to_target += f"🔗 @{sender_username}"
+    else:
+        msg_to_target += f"📱 Shaxsiy yozing"
+    
+    await context.bot.send_message(chat_id=to_user, text=msg_to_target)
 
 
 async def handle_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
