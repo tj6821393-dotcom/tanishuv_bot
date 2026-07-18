@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, Mess
 from bot.database.queries import get_user, create_user
 from bot.keyboards.main_menu import main_menu
 
-(NAME, GENDER, AGE, CITY, PHOTOS, CONTACT) = range(6)
+(NAME, GENDER, AGE, LOCATION, PHOTOS, CONTACT) = range(6)
 
 def generate_unique_id():
     digits = ''.join(random.choices(string.digits, k=5))
@@ -55,11 +55,29 @@ async def get_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except ValueError:
         await update.message.reply_text("Iltimos, faqat raqam kiriting!")
         return AGE
-    await update.message.reply_text("Shahringizni kiriting (masalan: Toshkent, Chilonzor):")
-    return CITY
+    
+    # Lokatsiya so'rash
+    kb = ReplyKeyboardMarkup([
+        [KeyboardButton("📍 Lokatsiyani yuborish", request_location=True)]
+    ], resize_keyboard=True, one_time_keyboard=True)
+    await update.message.reply_text(
+        "📍 Lokatsiyangizni yuboring:\n"
+        "Bu sizga yaqin atrofdagi odamlarni topishga yordam beradi.",
+        reply_markup=kb
+    )
+    return LOCATION
 
-async def get_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data['city'] = update.message.text
+async def get_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.location:
+        context.user_data['latitude'] = update.message.location.latitude
+        context.user_data['longitude'] = update.message.location.longitude
+        context.user_data['city'] = "Lokatsiya bilan"
+    else:
+        # Lokatsiya yubormasdan davom etish
+        context.user_data['latitude'] = None
+        context.user_data['longitude'] = None
+        context.user_data['city'] = "Lokatsiya yoq"
+    
     await update.message.reply_text(
         "📸 Profil rasmingizni yuboring (1-3 ta rasm):\n"
         "(Birinchi rasm asosiy bo'ladi)"
@@ -120,13 +138,13 @@ async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'full_name': context.user_data['full_name'],
         'gender': context.user_data['gender'],
         'age': context.user_data['age'],
-        'city': context.user_data['city'],
+        'city': context.user_data.get('city'),
         'bio': None,
         'goal': None,
         'interests': None,
         'photos': ','.join(context.user_data.get('photos', [])),
-        'latitude': None,
-        'longitude': None,
+        'latitude': context.user_data.get('latitude'),
+        'longitude': context.user_data.get('longitude'),
     }
     await create_user(data)
     await update.message.reply_text(
@@ -144,7 +162,10 @@ def get_start_handler():
             NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
             GENDER: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_gender)],
             AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_age)],
-            CITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_city)],
+            LOCATION: [
+                MessageHandler(filters.LOCATION, get_location),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_location)
+            ],
             PHOTOS: [
                 MessageHandler(filters.PHOTO, get_photos),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, get_photos)

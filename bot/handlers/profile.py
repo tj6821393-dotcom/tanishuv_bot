@@ -13,13 +13,16 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     photos = user['photos'].split(',') if user['photos'] else []
     balance = f"{user['balance']:,}"
+    bio = user.get('bio') if user.get('bio') else "Story yoq"
+    
     text = (
         "👤 Sizning profilingiz\n\n"
         f"🆔 #{user['unique_id']}\n"
         f"👤 Ism: {user['full_name']}\n"
         f"🎂 Yosh: {user['age']}\n"
-        f"📍 Shahar: {user['city']}\n"
+        f"📍 Shahar: {user.get('city') or 'Lokatsiya'}\n"
         f"📱 Telefon: {user.get('phone_number') or 'Korsatilmagan'}\n\n"
+        f"📖 Story: {bio}\n\n"
         f"💰 Balans: {balance} so'm"
     )
     if photos:
@@ -41,6 +44,15 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
             "Nimani o'zgartirmoqchisiz?",
             reply_markup=profile_edit_fields()
         )
+    
+    elif data == "profile_bio":
+        await query.message.reply_text(
+            "📖 O'zingiz haqingizda yozing:\n\n"
+            "Bu story sifatida boshqa foydalanuvchilarga ko'rsatiladi.\n"
+            "Masalan: 'Men toshkentlikman, IT sohasida ishlayman'"
+        )
+        context.user_data['edit_field'] = 'bio'
+        return
 
     elif data == "profile_delete":
         await query.message.reply_text(
@@ -64,7 +76,7 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
         fields = {
             'photos': 'Yangi rasm yuboring:',
             'name': 'Yangi ismingizni kiriting:',
-            'city': 'Yangi shahringizni kiriting:'
+            'bio': 'Story yozing:'
         }
         context.user_data['edit_field'] = field
         await query.message.reply_text(fields.get(field, "Ma'lumot kiriting:"))
@@ -81,6 +93,10 @@ async def handle_edit_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update_user(tg_id, photos=file_id)
             await update.message.reply_text("✅ Rasm yangilandi!")
             context.user_data['edit_field'] = None
+    elif field == 'bio':
+        await update_user(tg_id, bio=update.message.text)
+        await update.message.reply_text("✅ Story yangilandi!")
+        context.user_data['edit_field'] = None
     else:
         db_fields = {
             'name': 'full_name',
