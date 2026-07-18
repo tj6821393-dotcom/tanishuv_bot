@@ -114,29 +114,36 @@ async def get_photos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return PHOTOS
 
 async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Kontakt yuborilganini tekshirish
     contact = update.message.contact
+    tg_id = update.effective_user.id
     
     if not contact:
-        # Kontakt yuborilmagan - qayta so'rash
         kb = ReplyKeyboardMarkup([
             [KeyboardButton("📱 Kontaktni ulashish", request_contact=True)]
         ], resize_keyboard=True, one_time_keyboard=True)
         await update.message.reply_text(
-            "📱 Iltimos, telefon raqamingizni ulashing:\n"
-            "Bu orqali sizga yozishishadi.",
+            "📱 Iltimos, telefon raqamingizni ulashing:",
             reply_markup=kb
         )
         return CONTACT
     
-    # Kontakt saqlandi
+    # Kontakt egasi tekshirish - faqat o'z kontakti
+    if contact.user_id != tg_id:
+        kb = ReplyKeyboardMarkup([
+            [KeyboardButton("📱 Kontaktni ulashish", request_contact=True)]
+        ], resize_keyboard=True, one_time_keyboard=True)
+        await update.message.reply_text(
+            "❌ Faqat o'zingizning kontaktingizni ulashing!",
+            reply_markup=kb
+        )
+        return CONTACT
+    
     context.user_data['phone_number'] = contact.phone_number
     context.user_data['username'] = update.effective_user.username
     
-    # Foydalanuvchi yaratish
     unique_id = generate_unique_id()
     data = {
-        'telegram_id': update.effective_user.id,
+        'telegram_id': tg_id,
         'unique_id': unique_id,
         'username': context.user_data['username'],
         'phone_number': context.user_data['phone_number'],

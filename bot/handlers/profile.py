@@ -107,13 +107,18 @@ async def handle_edit_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
             context.user_data['edit_field'] = None
     
     elif field == 'phone':
-        if update.message.contact:
-            phone = update.message.contact.phone_number
-            await update_user(tg_id, phone_number=phone)
-            await update.message.reply_text(f"✅ Telefon yangilandi: {phone}")
-        else:
+        contact = update.message.contact
+        if not contact:
             await update.message.reply_text("❌ Iltimos, kontakt tugmasini bosing!")
             return
+        
+        # Kontakt egasi tekshirish - faqat o'z kontakti qabul qilish
+        if contact.user_id != tg_id:
+            await update.message.reply_text("❌ Faqat o'zingizning kontaktingizni ulashing!")
+            return
+        
+        await update_user(tg_id, phone_number=contact.phone_number)
+        await update.message.reply_text(f"✅ Telefon yangilandi: {contact.phone_number}")
         context.user_data['edit_field'] = None
     
     elif field == 'bio':

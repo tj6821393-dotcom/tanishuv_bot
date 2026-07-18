@@ -2,7 +2,7 @@ from telegram import Update, InputMediaPhoto
 from telegram.ext import ContextTypes
 from bot.database.queries import (
     get_user, search_users, add_like, check_match,
-    create_match, add_notification, get_balance, deduct_balance
+    create_match, add_notification, get_balance, deduct_balance, add_balance
 )
 from bot.keyboards.search_kb import search_actions
 
@@ -166,8 +166,18 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     
-    await deduct_balance(tg_id, PRICE_TANISHISH)
-    await create_match(tg_id, to_user_id)
+    # Balans yechish - atomik
+    if not await deduct_balance(tg_id, PRICE_TANISHISH):
+        await query.message.reply_text("❌ Balans yechishda xatolik!")
+        return
+    
+    # Match yaratish - xatolik tekshirish
+    match_ok = await create_match(tg_id, to_user_id)
+    if not match_ok:
+        # Match allaqachon mavjud - pul qaytarish
+        await add_balance(tg_id, PRICE_TANISHISH)
+        await query.message.reply_text("❌ Siz bu odam bilan allaqachon tanishgansiz!")
+        return
     
     # SENDER GA HABAR
     msg1 = f"✅ Tanishuv tasdiqlandi! (-{PRICE_TANISHISH:,} so'm)\n\n"

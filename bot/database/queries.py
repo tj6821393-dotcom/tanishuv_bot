@@ -149,14 +149,14 @@ async def add_balance(telegram_id: int, amount: int):
 async def deduct_balance(telegram_id: int, amount: int):
     pool = await get_pool()
     async with pool.acquire() as conn:
-        balance = await get_balance(telegram_id)
-        if balance < amount:
-            return False
-        await conn.execute(
-            "UPDATE users SET balance = balance - $1 WHERE telegram_id = $2",
-            amount, telegram_id
-        )
-        return True
+        # Atomik update - race condition yo'q
+        result = await conn.fetchrow("""
+            UPDATE users 
+            SET balance = balance - $1 
+            WHERE telegram_id = $2 AND balance >= $1 
+            RETURNING balance
+        """, amount, telegram_id)
+        return result is not None
 
 # ═══════════════════════════
 # KARTOCHKALAR
