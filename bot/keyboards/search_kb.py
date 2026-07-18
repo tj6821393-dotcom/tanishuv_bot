@@ -7,6 +7,10 @@ def search_actions(user_id: int):
             InlineKeyboardButton("💌 Tanishish", callback_data=f"tanishish_{user_id}")
         ],
         [
+            InlineKeyboardButton("📖 Story", callback_data=f"story_{user_id}"),
+            InlineKeyboardButton("📸 Suratlar", callback_data=f"photos_{user_id}")
+        ],
+        [
             InlineKeyboardButton("⬅️ Oldingi", callback_data="prev_user"),
             InlineKeyboardButton("➡️ Keyingi", callback_data="next_user")
         ]

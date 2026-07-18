@@ -9,7 +9,8 @@ from bot.database.models import create_tables
 
 from bot.handlers.start import get_start_handler
 from bot.handlers.search import (
-    show_search, handle_like, handle_next, handle_prev_user, handle_tanishish
+    show_search, handle_like, handle_next, handle_prev_user, handle_tanishish,
+    handle_story, handle_photos
 )
 from bot.handlers.payment import get_payment_handler, show_payment
 from bot.handlers.admin import admin_panel, handle_admin_callback, handle_admin_text
@@ -65,6 +66,8 @@ def main():
     # Search callbacklar
     app.add_handler(CallbackQueryHandler(handle_like, pattern="^like_"))
     app.add_handler(CallbackQueryHandler(handle_tanishish, pattern="^tanishish_"))
+    app.add_handler(CallbackQueryHandler(handle_story, pattern="^story_"))
+    app.add_handler(CallbackQueryHandler(handle_photos, pattern="^photos_"))
     app.add_handler(CallbackQueryHandler(handle_prev_user, pattern="^prev_user"))
     app.add_handler(CallbackQueryHandler(handle_next, pattern="^next_user"))
 

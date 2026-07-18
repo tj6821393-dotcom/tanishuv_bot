@@ -15,8 +15,7 @@ async def show_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💰 Joriy balansingiz: {balance:,} so'm\n\n"
         "⚠️ DIQQAT - Narxlar:\n"
         "💌 Tanishish: 15,000 som\n"
-        "💍 Oila qurish niyati (statistika): 35,000 som\n"
-        "📍 Lokatsiya so'rovi: 25,000 som\n\n"
+
         f"🏦 Karta: <code>{CARD_NUMBER}</code>\n"
         f"👤 Egasi: {CARD_OWNER}\n\n"
         f"Minimal to'ldirish: {MIN_PAYMENT:,} som\n\n"

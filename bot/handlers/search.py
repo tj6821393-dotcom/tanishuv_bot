@@ -175,9 +175,15 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await create_match(tg_id, to_user)
     
+    # Sender ga qiz haqida malumot berish
+    target_phone = target.get('phone_number') or 'Korsatilmagan'
+    target_username = f"@{target.get('username')}" if target.get('username') else 'Username yoq'
+    
     await query.message.reply_text(
-        f"✅ Tanishish tasdiqlandi!\n"
-        f"🆔 {target['full_name']} - #{target['unique_id']}\n\n"
+        f"✅ Tanishish tasdiqlandi!\n\n"
+        f"👤 {target['full_name']} - #{target['unique_id']}\n"
+        f"📱 Telefon: {target_phone}\n"
+        f"🔗 {target_username}\n\n"
         f"Endi yozishingiz mumkin!"
     )
     
@@ -196,3 +202,55 @@ async def handle_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     user = await get_user(update.effective_user.id)
     await show_next_user(update, context, user)
+
+
+async def handle_story(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Story ko'rish"""
+    query = update.callback_query
+    await query.answer()
+    user_id = int(query.data.split('_')[1])
+    target = await get_user(user_id)
+    
+    if not target:
+        await query.message.reply_text("❌ Profil topilmadi!")
+        return
+    
+    bio = target.get('bio') or "Story yoq"
+    
+    await query.message.reply_text(
+        f"📖 {target['full_name']} haqida:\n\n"
+        f"{bio}\n\n"
+        f"🆔 #{target['unique_id']}"
+    )
+
+
+async def handle_photos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Suratlarni ko'rish"""
+    query = update.callback_query
+    await query.answer()
+    user_id = int(query.data.split('_')[1])
+    target = await get_user(user_id)
+    
+    if not target:
+        await query.message.reply_text("❌ Profil topilmadi!")
+        return
+    
+    photos = target['photos'].split(',') if target['photos'] else []
+    
+    if not photos:
+        await query.message.reply_text("📸 Suratlar yoq!")
+        return
+    
+    # Har bir rasmni alohida yuborish
+    for i, photo_id in enumerate(photos, 1):
+        try:
+            await context.bot.send_photo(
+                chat_id=update.effective_user.id,
+                photo=photo_id,
+                caption=f"📸 Surat {i}/{len(photos)}"
+            )
+        except Exception:
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text=f"Rasm {i} yuklab bo'lmadi."
+            )
