@@ -24,10 +24,10 @@ async def show_user_profile(update, context, target, user):
     """Foydalanuvchi profilini ko'rsatish"""
     photos = target['photos'].split(',') if target['photos'] else []
     
+    # ID ni yashirish - faqat tanishuvdan keyin ko'rinadi
     caption = (
         f"👤 {target['full_name']}, {target['age']} yosh\n"
-        f"📍 {target['city']}\n"
-        f"🆔 #{target['unique_id']}"
+        f"📍 {target.get('city') or 'Lokatsiya'}"
     )
     kb = search_actions(target['telegram_id'])
     
@@ -175,35 +175,45 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await create_match(tg_id, to_user)
     
-    # Sender ga qiz haqida malumot berish
-    target_phone = target.get('phone_number')
-    target_username = target.get('username')
+    # Qarama-qarshi tomon uchun habar
+    sender_info = []
+    if user.get('phone_number'):
+        sender_info.append(f"📱 Tel: {user['phone_number']}")
+    if user.get('username'):
+        sender_info.append(f"🔗 @{user['username']}")
+    else:
+        # Username yo'q bo'lsa to'g'ridan Telegram havola
+        sender_info.append(f"👤 https://t.me/{user.get('full_name', 'user').replace(' ', '_')}")
     
-    contact_info = []
-    if target_phone:
-        contact_info.append(f"📱 Telefon: {target_phone}")
-    if target_username:
-        contact_info.append(f"🔗 @{target_username}")
+    sender_text = "\n".join(sender_info) if sender_info else "Bog'lanish ma'lumotlari yo'q"
     
-    # Telegram profilga havola
-    contact_info.append(f"👤 Telegram: https://t.me/{target.get('username') or target.get('full_name', '').replace(' ', '_')}")
+    # Sender ga qarama-qarshi tomon haqida habar
+    target_info = []
+    if target.get('phone_number'):
+        target_info.append(f"📱 Tel: {target['phone_number']}")
+    if target.get('username'):
+        target_info.append(f"🔗 @{target['username']}")
+    else:
+        # Username yo'q - to'g'ridan Telegram havola
+        target_info.append(f"👤 https://t.me/{target.get('full_name', 'user').replace(' ', '_')}")
     
-    contact_text = "\n".join(contact_info) if contact_info else "Bog'lanish mumkin emas"
+    target_text = "\n".join(target_info) if target_info else "Bog'lanish ma'lumotlari yo'q"
     
+    # Sender ga habar
     await query.message.reply_text(
-        f"✅ Tanishish tasdiqlandi!\n\n"
-        f"👤 {target['full_name']} - #{target['unique_id']}\n\n"
-        f"{contact_text}\n\n"
-        f"Endi yozishingiz mumkin!"
+        f"✅ Tanishuv tasdiqlandi! (-{PRICE_TANISHISH:,} so'm)\n\n"
+        f"👤 {target['full_name']}\n"
+        f"{target_text}\n\n"
+        "Endi shaxsiy yozishingiz mumkin!"
     )
     
+    # Qarama-qarshi tomonga habar
     await context.bot.send_message(
         chat_id=to_user,
-        text=f"💌 Yangi tanishish so'rovi!\n\n"
-             f"💌 #{user['unique_id']} ({user['full_name']}) siz bilan tanishishni xohlaydi!\n\n"
-             f"🆔 Ularning ID: #{user['unique_id']}\n"
-             f"📱 Telefon: {user.get('phone_number') or 'Korsatilmagan'}\n\n"
-             f"Endi siz ham yozishingiz mumkin!"
+        text=f"💌 Yangi tanishish!\n\n"
+             f"👤 {user['full_name']}\n"
+             f"{sender_text}\n\n"
+             "Endi siz ham yozishingiz mumkin!"
     )
 
 
