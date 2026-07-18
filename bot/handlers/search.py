@@ -169,17 +169,17 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await deduct_balance(tg_id, PRICE_TANISHISH)
     await create_match(tg_id, to_user_id)
     
-    # SENDER GA HABAR - QARSHI TOMON HAQIDA
-    msg1 = "✅ Tanishuv tasdiqlandi!\n"
+    # SENDER GA HABAR
+    msg1 = f"✅ Tanishuv tasdiqlandi! (-{PRICE_TANISHISH:,} so'm)\n\n"
     msg1 += f"👤 {target['full_name']}\n"
     if target.get('phone_number'):
         msg1 += f"📱 {target['phone_number']}\n"
     if target.get('username'):
         msg1 += f"🔗 @{target['username']}"
-    await query.message.edit_message_text(text=msg1)
+    await query.message.reply_text(msg1)
     
     # QARSHI TOMONGA HABAR
-    msg2 = "💌 Yangi tanishish!\n"
+    msg2 = f"💌 Yangi tanishish!\n\n"
     msg2 += f"👤 {user['full_name']}\n"
     if user.get('phone_number'):
         msg2 += f"📱 {user['phone_number']}\n"
