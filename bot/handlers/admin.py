@@ -39,7 +39,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
     elif data == "admin_payments":
         transactions = await get_pending_transactions()
         if not transactions:
-            await query.message.reply_text("Kutayotgan to'lovlar yo'q.")
+            await query.message.reply_text("Kutayotgan to'lovlar yo'q.", reply_markup=admin_menu())
             return
         for tx in transactions:
             caption = (
@@ -65,7 +65,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
     elif data == "admin_complaints":
         complaints = await get_complaints()
         if not complaints:
-            await query.message.reply_text("Yangi shikoyatlar yo'q.")
+            await query.message.reply_text("Yangi shikoyatlar yo'q.", reply_markup=admin_menu())
             return
         for c in complaints:
             kb = InlineKeyboardMarkup([[
@@ -95,7 +95,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             chat_id=tg_id,
             text=f"To'lovingiz tasdiqlandi!\n{amount} so'm balansingizga qo'shildi."
         )
-        await query.message.reply_text("To'lov tasdiqlandi!")
+        await query.message.reply_text("✅ To'lov tasdiqlandi!", reply_markup=admin_menu())
 
     elif data.startswith("admin_reject_"):
         parts = data.split('_')
@@ -103,7 +103,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
         tg_id = int(parts[3])
         await update_transaction(tx_id, 'rejected')
         await context.bot.send_message(chat_id=tg_id, text="To'lovingiz rad etildi.")
-        await query.message.reply_text("To'lov rad etildi.")
+        await query.message.reply_text("❌ To'lov rad etildi.", reply_markup=admin_menu())
 
     elif data.startswith("admin_block_"):
         tg_id = int(data.split('_')[-1])
@@ -112,7 +112,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             await context.bot.send_message(chat_id=tg_id, text="Hisobingiz bloklandi.")
         except Exception:
             pass
-        await query.message.reply_text("Foydalanuvchi bloklandi.")
+        await query.message.reply_text("❌ Foydalanuvchi bloklandi.", reply_markup=admin_menu())
 
     elif data.startswith("admin_unblock_"):
         tg_id = int(data.split('_')[-1])
@@ -121,7 +121,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             await context.bot.send_message(chat_id=tg_id, text="Blok olib tashlandi.")
         except Exception:
             pass
-        await query.message.reply_text("Blok olib tashlandi.")
+        await query.message.reply_text("✅ Blok olib tashlandi.", reply_markup=admin_menu())
 
     elif data.startswith("admin_add_balance_"):
         tg_id = int(data.split('_')[-1])
@@ -138,7 +138,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
     elif data.startswith("resolve_"):
         complaint_id = int(data.split('_')[1])
         await resolve_complaint(complaint_id)
-        await query.message.reply_text("Shikoyat hal qilindi.")
+        await query.message.reply_text("✅ Shikoyat hal qilindi.", reply_markup=admin_menu())
 
     elif data == "admin_back":
         await query.message.reply_text("Admin Panel", reply_markup=admin_menu())
@@ -177,7 +177,7 @@ async def handle_admin_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             tg_id = context.user_data.get('admin_target_user')
             if tg_id:
                 await add_balance_admin(tg_id, amount)
-                await update.message.reply_text(f"✅ {amount:,} so'm qo'shildi.")
+                await update.message.reply_text(f"✅ {amount:,} so'm qo'shildi.", reply_markup=admin_menu())
                 try:
                     await context.bot.send_message(
                         chat_id=tg_id,

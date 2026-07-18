@@ -64,7 +64,7 @@ async def handle_profile_callback(update: Update, context: ContextTypes.DEFAULT_
     elif data == "profile_delete_confirm":
         await delete_user(update.effective_user.id)
         await query.message.reply_text(
-            "Profilingiz o'chirildi.\n"
+            "✅ Profil o'chirildi.\n"
             "Qayta ro'yxatdan o'tish uchun /start bosing."
         )
 
