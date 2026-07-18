@@ -154,8 +154,8 @@ async def handle_admin_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not user:
             await update.message.reply_text("Foydalanuvchi topilmadi.")
             return
-        blocked_status = "Ha" if user['is_blocked'] else "Yo'q"
-        verified_status = "Ha" if user['is_verified'] else "Yo'q"
+        blocked_status = "Ha" if user['is_blocked'] else "Yoq"
+        verified_status = "Ha" if user['is_verified'] else "Yoq"
         msg = (
             f"Foydalanuvchi ma'lumotlari\n\n"
             f"Ism: {user['full_name']}\n"

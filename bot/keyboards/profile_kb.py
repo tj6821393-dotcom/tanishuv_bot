@@ -17,5 +17,5 @@ def profile_edit_fields():
 def confirm_delete():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("✅ Ha, o'chirish", callback_data="profile_delete_confirm")],
-        [InlineKeyboardButton("❌ Yo'q", callback_data="profile_back")]
+        [InlineKeyboardButton("❌ Yoq", callback_data="profile_back")]
     ])
