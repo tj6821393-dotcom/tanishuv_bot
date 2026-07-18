@@ -86,7 +86,7 @@ def main():
         handle_all_text
     ))
     
-    # Contact handler for profile phone edit
+    # Contact handler for profile phone edit (after registration)
     app.add_handler(MessageHandler(
         filters.CONTACT,
         handle_all_text
