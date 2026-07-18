@@ -17,14 +17,14 @@ async def create_user(data: dict):
     async with pool.acquire() as conn:
         return await conn.fetchrow("""
             INSERT INTO users 
-            (telegram_id, unique_id, full_name, gender, age, city, 
-             bio, goal, interests, photos, latitude, longitude)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+            (telegram_id, unique_id, username, phone_number, full_name, gender, age, city, 
+             bio, goal, interests, photos, latitude, longitude, balance)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
             RETURNING *
-        """, data['telegram_id'], data['unique_id'], data['full_name'],
-            data['gender'], data['age'], data['city'],
+        """, data['telegram_id'], data['unique_id'], data.get('username'), data.get('phone_number'),
+            data['full_name'], data['gender'], data['age'], data['city'],
             data.get('bio'), data.get('goal'), data.get('interests'),
-            data.get('photos'), data.get('latitude'), data.get('longitude')
+            data.get('photos'), data.get('latitude'), data.get('longitude'), 0
         )
 
 async def update_user(telegram_id: int, **kwargs):

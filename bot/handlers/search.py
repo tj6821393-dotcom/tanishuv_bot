@@ -154,58 +154,38 @@ async def handle_tanishish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     tg_id = update.effective_user.id
-    to_user = int(query.data.split('_')[1])
+    to_user_id = int(query.data.split('_')[1])
     user = await get_user(tg_id)
-    target = await get_user(to_user)
+    target = await get_user(to_user_id)
     
     balance = await get_balance(tg_id)
     if balance < PRICE_TANISHISH:
         await query.message.reply_text(
-            f"❌ Balans yetarli emas!\n\n"
-            f"💰 Balansingiz: {balance:,} so'm\n"
-            f"💳 Kerakli summa: {PRICE_TANISHISH:,} so'm\n\n"
-            "Balansni to'ldiring: 💳 Balans tugmasini bosing"
+            "❌ Balans yetarli emas!\n"
+            f"💰 Balansingiz: {balance:,} so'm"
         )
         return
     
-    success = await deduct_balance(tg_id, PRICE_TANISHISH)
-    if not success:
-        await query.message.reply_text("❌ Xatolik yuz berdi!")
-        return
+    await deduct_balance(tg_id, PRICE_TANISHISH)
+    await create_match(tg_id, to_user_id)
     
-    await create_match(tg_id, to_user)
+    # SENDER GA HABAR - QARSHI TOMON HAQIDA
+    msg1 = "✅ Tanishuv tasdiqlandi!\n"
+    msg1 += f"👤 {target['full_name']}\n"
+    if target.get('phone_number'):
+        msg1 += f"📱 {target['phone_number']}\n"
+    if target.get('username'):
+        msg1 += f"🔗 @{target['username']}"
+    await query.message.edit_message_text(text=msg1)
     
-    # Sender contact
-    sender_phone = user.get('phone_number') or ''
-    sender_username = user.get('username') or ''
-    
-    # Target contact
-    target_phone = target.get('phone_number') or ''
-    target_username = target.get('username') or ''
-    
-    # Sender ga habar
-    msg_to_sender = f"✅ Tanishuv tasdiqlandi! (-{PRICE_TANISHISH:,} so'm)\n\n"
-    msg_to_sender += f"👤 {target['full_name']}\n"
-    if target_phone:
-        msg_to_sender += f"📱 {target_phone}\n"
-    if target_username:
-        msg_to_sender += f"🔗 @{target_username}"
-    else:
-        msg_to_sender += f"📱 Shaxsiy yozing"
-    
-    await query.message.reply_text(msg_to_sender)
-    
-    # Target ga habar
-    msg_to_target = f"💌 Yangi tanishish!\n\n"
-    msg_to_target += f"👤 {user['full_name']}\n"
-    if sender_phone:
-        msg_to_target += f"📱 {sender_phone}\n"
-    if sender_username:
-        msg_to_target += f"🔗 @{sender_username}"
-    else:
-        msg_to_target += f"📱 Shaxsiy yozing"
-    
-    await context.bot.send_message(chat_id=to_user, text=msg_to_target)
+    # QARSHI TOMONGA HABAR
+    msg2 = "💌 Yangi tanishish!\n"
+    msg2 += f"👤 {user['full_name']}\n"
+    if user.get('phone_number'):
+        msg2 += f"📱 {user['phone_number']}\n"
+    if user.get('username'):
+        msg2 += f"🔗 @{user['username']}"
+    await context.bot.send_message(chat_id=to_user_id, text=msg2)
 
 
 async def handle_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
